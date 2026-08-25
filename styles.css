@@ -131,7 +131,56 @@ body {
 }
 
 .choices.chords {
-  grid-template-columns: repeat(auto-fill, minmax(4.8rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(5.2rem, 1fr));
+}
+
+.chord-choice {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.25rem;
+}
+
+.chord-choice .choice.chord {
+  width: 100%;
+}
+
+.chord-play-btn {
+  appearance: none;
+  border: 1px solid rgba(212, 160, 90, 0.35);
+  background: rgba(212, 160, 90, 0.1);
+  color: var(--amber-hot);
+  font-size: 0.72rem;
+  line-height: 1;
+  border-radius: 999px;
+  padding: 0.35rem 0.55rem;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+  align-self: center;
+}
+
+.chord-play-btn:hover,
+.chord-play-btn:focus-visible {
+  outline: none;
+  background: rgba(212, 160, 90, 0.22);
+  transform: scale(1.05);
+}
+
+.chord-play-btn.is-playing {
+  background: var(--amber);
+  color: #1a1410;
+}
+
+.chord-play-inline {
+  width: 100%;
+  padding: 0.28rem 0;
+  font-size: 0.68rem;
+}
+
+.chord-diag .chord-play-btn {
+  margin-top: 0.2rem;
+  min-width: 2rem;
 }
 
 .choice.chord {

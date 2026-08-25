@@ -453,12 +453,14 @@ function renderChordSvg(symbol, voicing, opts = {}) {
 
   const title = symbol;
   const sub = voicing.name ? voicing.name : "";
+  const fretAttr = frets.join(",");
   return `
     <figure class="chord-diag">
       <svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" role="img" aria-label="Аппликатура ${title}">
         <text x="${w / 2}" y="14" text-anchor="middle" fill="#f3e6d4" font-size="12" font-weight="600" font-family="Literata,Georgia,serif">${title}</text>
         ${marks}
       </svg>
+      <button type="button" class="chord-play-btn" data-play-frets="${fretAttr}" aria-label="Послушать ${title}">▶</button>
       ${sub ? `<figcaption>${sub}</figcaption>` : ""}
     </figure>
   `;
@@ -467,7 +469,11 @@ function renderChordSvg(symbol, voicing, opts = {}) {
 function renderChordDiagrams(symbol, { maxVoicings = 1 } = {}) {
   const voicings = getVoicings(symbol).slice(0, maxVoicings);
   if (!voicings.length) {
-    return `<figure class="chord-diag chord-diag-missing"><div class="chord-missing">${symbol}</div><figcaption>нет схемы</figcaption></figure>`;
+    return `<figure class="chord-diag chord-diag-missing">
+      <div class="chord-missing">${symbol}</div>
+      <button type="button" class="chord-play-btn" data-play-chord="${symbol}" aria-label="Послушать ${symbol}">▶</button>
+      <figcaption>нет схемы</figcaption>
+    </figure>`;
   }
   return voicings.map((v) => renderChordSvg(symbol, v)).join("");
 }

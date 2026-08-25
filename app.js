@@ -710,7 +710,10 @@ function showStart() {
       ${renderChoices(
         START_CHORDS,
         "chords",
-        (c) => `<button type="button" class="choice chord" data-value="${c}">${c}</button>`
+        (c) => `<div class="chord-choice">
+          <button type="button" class="choice chord" data-value="${c}">${c}</button>
+          <button type="button" class="chord-play-btn chord-play-inline" data-play-chord="${c}" aria-label="Послушать ${c}">▶</button>
+        </div>`
       )}
     </div>
   `;
