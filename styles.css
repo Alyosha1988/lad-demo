@@ -212,23 +212,28 @@ body {
 
 .chord-play-btn {
   appearance: none;
-  border: 1px solid rgba(212, 160, 90, 0.35);
-  background: rgba(212, 160, 90, 0.1);
+  border: 1px solid rgba(212, 160, 90, 0.45);
+  background: rgba(212, 160, 90, 0.16);
   color: var(--amber-hot);
-  font-size: 0.72rem;
+  font-size: 1.15rem;
   line-height: 1;
   border-radius: 999px;
-  padding: 0.35rem 0.55rem;
+  min-width: 3rem;
+  min-height: 3rem;
+  padding: 0.65rem 0.9rem;
   cursor: pointer;
   transition: background 0.2s ease, transform 0.2s ease;
   align-self: center;
+  display: inline-grid;
+  place-items: center;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .chord-play-btn:hover,
 .chord-play-btn:focus-visible {
   outline: none;
-  background: rgba(212, 160, 90, 0.22);
-  transform: scale(1.05);
+  background: rgba(212, 160, 90, 0.28);
+  transform: scale(1.04);
 }
 
 .chord-play-btn.is-playing,
@@ -244,13 +249,16 @@ body {
 
 .chord-play-inline {
   width: 100%;
-  padding: 0.28rem 0;
-  font-size: 0.68rem;
+  min-height: 2.75rem;
+  padding: 0.55rem 0;
+  font-size: 1.05rem;
 }
 
 .chord-diag .chord-play-btn {
-  margin-top: 0.2rem;
-  min-width: 2rem;
+  margin-top: 0.45rem;
+  min-width: 3.25rem;
+  min-height: 3.25rem;
+  font-size: 1.25rem;
 }
 
 .choice.chord {
