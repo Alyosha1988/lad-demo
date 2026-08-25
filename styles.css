@@ -228,9 +228,15 @@ body {
   transform: scale(1.05);
 }
 
-.chord-play-btn.is-playing {
+.chord-play-btn.is-playing,
+.instrument-btn.is-playing {
   background: var(--amber);
   color: #1a1410;
+}
+
+.chord-play-btn.is-muted {
+  border-color: var(--danger-soft);
+  color: var(--danger-soft);
 }
 
 .chord-play-inline {
