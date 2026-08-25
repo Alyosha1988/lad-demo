@@ -88,6 +88,67 @@ body {
   margin-inline: auto;
 }
 
+.instrument-bar {
+  display: inline-flex;
+  gap: 0.55rem;
+  margin-top: 1.15rem;
+  padding: 0.35rem;
+  border-radius: 999px;
+  border: 1px solid var(--wood-line);
+  background: rgba(18, 14, 11, 0.45);
+}
+
+.instrument-btn {
+  appearance: none;
+  width: 2.7rem;
+  height: 2.7rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ink-soft);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s var(--ease);
+}
+
+.instrument-btn img {
+  width: 1.45rem;
+  height: 1.45rem;
+  display: block;
+  filter: brightness(0) saturate(100%) invert(78%) sepia(18%) saturate(650%) hue-rotate(358deg) brightness(95%);
+  opacity: 0.72;
+  transition: opacity 0.2s ease, filter 0.2s ease;
+}
+
+.instrument-btn:hover,
+.instrument-btn:focus-visible {
+  outline: none;
+  border-color: rgba(212, 160, 90, 0.35);
+  background: rgba(212, 160, 90, 0.08);
+  transform: translateY(-1px);
+}
+
+.instrument-btn:hover img,
+.instrument-btn:focus-visible img {
+  opacity: 1;
+}
+
+.instrument-btn.is-active {
+  background: rgba(212, 160, 90, 0.18);
+  border-color: rgba(212, 160, 90, 0.55);
+  box-shadow: 0 0 0 3px var(--glow);
+}
+
+.instrument-btn.is-active img {
+  opacity: 1;
+  filter: brightness(0) saturate(100%) invert(84%) sepia(28%) saturate(700%) hue-rotate(356deg) brightness(102%);
+}
+
 .stage {
   animation: rise 0.7s var(--ease) 0.12s both;
 }
