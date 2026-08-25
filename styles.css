@@ -416,6 +416,17 @@ body {
   font-size: 0.95rem;
 }
 
+.diag-block {
+  margin-top: 0.35rem;
+}
+
+.diag-hint {
+  margin: 0 0 0.45rem;
+  font-size: 0.78rem;
+  color: var(--ink-mute);
+  line-height: 1.35;
+}
+
 .diag-row {
   display: flex;
   flex-wrap: nowrap;
@@ -425,6 +436,44 @@ body {
   padding: 0.55rem 0 0.15rem;
   margin: 0.15rem 0 0.2rem;
   scrollbar-width: thin;
+  align-items: flex-start;
+}
+
+.diag-sequence {
+  gap: 0.35rem;
+}
+
+.diag-arrow {
+  flex: 0 0 auto;
+  align-self: center;
+  color: var(--amber);
+  font-size: 1.1rem;
+  opacity: 0.75;
+  padding: 0 0.1rem;
+  margin-top: -0.8rem;
+}
+
+.diag-step {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.15rem;
+  height: 1.15rem;
+  margin: 0 auto 0.2rem;
+  border-radius: 999px;
+  background: rgba(212, 160, 90, 0.2);
+  color: var(--amber-hot);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.chord-diag-piano {
+  min-width: 7rem;
+}
+
+.chord-diag-piano svg {
+  width: auto;
+  max-width: 200px;
+  height: 100px;
 }
 
 .chord-diag {

@@ -51,6 +51,9 @@ function setInstrument(id) {
   } catch (_) {}
   syncInstrumentUI();
   prefetchCommon(id);
+  if (typeof window !== "undefined" && typeof window.refreshAllPathDiagrams === "function") {
+    window.refreshAllPathDiagrams();
+  }
   return currentInstrument;
 }
 
@@ -261,18 +264,44 @@ function flashPlaying(el) {
 }
 
 function handlePlayEvent(e) {
-  const playBtn = e.target.closest("[data-play-frets], [data-play-chord]");
+  const playBtn = e.target.closest("[data-play-frets], [data-play-chord], [data-play-notes]");
   if (!playBtn) return false;
   e.preventDefault();
   e.stopPropagation();
   unlockAudio();
   flashPlaying(playBtn);
   try {
-    if (playBtn.dataset.playFrets) playVoicing(parseFrets(playBtn.dataset.playFrets));
-    else if (playBtn.dataset.playChord) playChord(playBtn.dataset.playChord);
+    if (playBtn.dataset.playNotes) {
+      playMidiNotes(playBtn.dataset.playNotes.split(",").map((n) => parseInt(n, 10)));
+    } else if (playBtn.dataset.playFrets) {
+      playVoicing(parseFrets(playBtn.dataset.playFrets));
+    } else if (playBtn.dataset.playChord) {
+      playChord(playBtn.dataset.playChord);
+    }
   } catch (err) {
     console.warn("Лад audio error:", err);
   }
+  return true;
+}
+
+function playMidiNotes(midis) {
+  const ctx = unlockAudio();
+  if (!ctx || !midis?.length) return false;
+  const instrument = currentInstrument;
+  const style = instrumentPlayStyle(instrument);
+  const dest = getMasterBus(ctx);
+  const jobs = midis.map((m) => loadSample(instrument, m));
+  Promise.all(jobs).then((buffers) => {
+    if (ctx.state === "suspended") ctx.resume().catch(() => {});
+    const start = ctx.currentTime + 0.03;
+    midis.forEach((m, i) => {
+      const when = start + i * (instrument === "piano" ? 0.012 : 0.03);
+      const buf = buffers[i];
+      const g = style.gain * 0.95;
+      if (buf) playBuffer(ctx, buf, when, g, dest, style.duration);
+      else synthFallback(ctx, midiToFreq(m), when, style.duration * 0.8, g * 0.5, dest, instrument);
+    });
+  });
   return true;
 }
 

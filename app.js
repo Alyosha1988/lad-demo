@@ -842,7 +842,7 @@ function showResults() {
           <article class="result">
             <p class="result-kind">${p.kind}</p>
             <p class="result-path">${p.path.join(" → ")}</p>
-            ${renderPathDiagrams(p.path, { maxVoicings: 1 })}
+            ${renderPathDiagrams(p.path)}
             <p class="result-why">${p.why}</p>
           </article>`
           )
