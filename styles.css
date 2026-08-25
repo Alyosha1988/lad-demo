@@ -292,9 +292,53 @@ body {
 }
 
 .result-why {
-  margin: 0;
+  margin: 0.65rem 0 0;
   color: var(--ink-soft);
   font-size: 0.95rem;
+}
+
+.diag-row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.45rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.55rem 0 0.15rem;
+  margin: 0.15rem 0 0.2rem;
+  scrollbar-width: thin;
+}
+
+.chord-diag {
+  margin: 0;
+  flex: 0 0 auto;
+  text-align: center;
+}
+
+.chord-diag figcaption {
+  margin-top: 0.15rem;
+  font-size: 0.62rem;
+  color: var(--ink-mute);
+  max-width: 84px;
+  line-height: 1.2;
+}
+
+.chord-diag svg {
+  display: block;
+  background: rgba(26, 20, 16, 0.55);
+  border: 1px solid rgba(212, 160, 90, 0.2);
+  border-radius: 8px;
+}
+
+.chord-diag-missing .chord-missing {
+  width: 78px;
+  height: 98px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  border: 1px dashed rgba(212, 160, 90, 0.28);
+  color: var(--ink-soft);
+  font-family: var(--font-display);
+  font-size: 0.85rem;
 }
 
 .melody-notes {
