@@ -1,20 +1,22 @@
 /**
- * Озвучка аккордов — живые сэмплы FluidR3 (jsDelivr)
- * acoustic / overdriven guitar / grand piano
- * Синтез только если сэмпл не загрузился.
+ * Озвучка аккордов — живые сэмплы (jsDelivr soundfonts)
+ * acoustic → nylon (FluidR3)
+ * distortion → distortion guitar (FatBoy) + лёгкий «кабинет»
+ * piano → grand piano (FluidR3)
  */
 
 const OPEN_MIDI = [40, 45, 50, 55, 59, 64];
 const INSTRUMENTS = ["acoustic", "distortion", "piano"];
 const INSTRUMENT_KEY = "lad-instrument";
 
-const SOUNDFONT_BASE =
-  "https://cdn.jsdelivr.net/gh/gleitz/midi-js-soundfonts@gh-pages/FluidR3_GM";
+const SOUNDFONT_HOST =
+  "https://cdn.jsdelivr.net/gh/gleitz/midi-js-soundfonts@gh-pages";
 
+/** bank + instrument folder per mode */
 const INSTRUMENT_FONT = {
-  acoustic: "acoustic_guitar_nylon-mp3",
-  distortion: "overdriven_guitar-mp3",
-  piano: "acoustic_grand_piano-mp3",
+  acoustic: { bank: "FluidR3_GM", folder: "acoustic_guitar_nylon-mp3" },
+  distortion: { bank: "FatBoy", folder: "distortion_guitar-mp3" },
+  piano: { bank: "FluidR3_GM", folder: "acoustic_grand_piano-mp3" },
 };
 
 const NOTE_NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
@@ -22,6 +24,7 @@ const NOTE_NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", 
 let audioCtx = null;
 let audioUnlocked = false;
 let masterBus = null;
+let distortionBus = null;
 const bufferCache = new Map();
 const inflight = new Map();
 
@@ -92,6 +95,72 @@ function getMasterBus(ctx) {
   return masterBus;
 }
 
+/** Отдельная шина для дисторшна: кабинет + присутствие, меньше «MIDI-пластика». */
+function getDistortionBus(ctx) {
+  if (distortionBus && distortionBus.context === ctx) return distortionBus;
+
+  const input = ctx.createGain();
+  input.gain.value = 0.95;
+
+  const hipass = ctx.createBiquadFilter();
+  hipass.type = "highpass";
+  hipass.frequency.value = 70;
+
+  const midscoop = ctx.createBiquadFilter();
+  midscoop.type = "peaking";
+  midscoop.frequency.value = 480;
+  midscoop.Q.value = 0.9;
+  midscoop.gain.value = -2.5;
+
+  const presence = ctx.createBiquadFilter();
+  presence.type = "peaking";
+  presence.frequency.value = 2100;
+  presence.Q.value = 0.8;
+  presence.gain.value = 3.2;
+
+  const cabinet = ctx.createBiquadFilter();
+  cabinet.type = "lowpass";
+  cabinet.frequency.value = 5000;
+  cabinet.Q.value = 0.55;
+
+  const air = ctx.createBiquadFilter();
+  air.type = "highshelf";
+  air.frequency.value = 6500;
+  air.gain.value = -3.5;
+
+  const delay = ctx.createDelay(0.2);
+  delay.delayTime.value = 0.026;
+  const delayGain = ctx.createGain();
+  delayGain.gain.value = 0.11;
+  const delayFilter = ctx.createBiquadFilter();
+  delayFilter.type = "lowpass";
+  delayFilter.frequency.value = 2600;
+
+  const out = ctx.createGain();
+  out.gain.value = 1.08;
+
+  input.connect(hipass);
+  hipass.connect(midscoop);
+  midscoop.connect(presence);
+  presence.connect(cabinet);
+  cabinet.connect(air);
+  air.connect(out);
+
+  air.connect(delayFilter);
+  delayFilter.connect(delay);
+  delay.connect(delayGain);
+  delayGain.connect(out);
+
+  out.connect(getMasterBus(ctx));
+  distortionBus = input;
+  distortionBus.context = ctx;
+  return distortionBus;
+}
+
+function destinationFor(instrument, ctx) {
+  return instrument === "distortion" ? getDistortionBus(ctx) : getMasterBus(ctx);
+}
+
 function unlockAudio() {
   const ctx = getAudioContext();
   if (!ctx) return null;
@@ -132,12 +201,12 @@ function fretsToNotes(frets) {
 }
 
 function sampleUrl(instrument, midi) {
-  const font = INSTRUMENT_FONT[instrument] || INSTRUMENT_FONT.acoustic;
-  return `${SOUNDFONT_BASE}/${font}/${midiToNoteName(midi)}.mp3`;
+  const conf = INSTRUMENT_FONT[instrument] || INSTRUMENT_FONT.acoustic;
+  return `${SOUNDFONT_HOST}/${conf.bank}/${conf.folder}/${midiToNoteName(midi)}.mp3`;
 }
 
 function loadSample(instrument, midi) {
-  const key = `${instrument}:${midi}`;
+  const key = `${instrument}:v2:${midi}`;
   if (bufferCache.has(key)) return Promise.resolve(bufferCache.get(key));
   if (inflight.has(key)) return inflight.get(key);
 
@@ -170,14 +239,15 @@ function prefetchCommon(instrument = currentInstrument) {
   midis.forEach((m) => loadSample(instrument, m));
 }
 
-function playBuffer(ctx, buffer, when, gainPeak, dest, durationCap) {
+function playBuffer(ctx, buffer, when, gainPeak, dest, durationCap, opts = {}) {
   const src = ctx.createBufferSource();
   src.buffer = buffer;
   const g = ctx.createGain();
   const dur = Math.min(durationCap, buffer.duration);
+  const attack = opts.attack ?? 0.015;
   g.gain.setValueAtTime(0.0001, when);
-  g.gain.linearRampToValueAtTime(gainPeak, when + 0.015);
-  const fadeAt = when + Math.max(0.2, dur - 0.35);
+  g.gain.linearRampToValueAtTime(gainPeak, when + attack);
+  const fadeAt = when + Math.max(0.25, dur - (opts.fade ?? 0.45));
   try {
     g.gain.setValueAtTime(gainPeak, fadeAt);
     g.gain.exponentialRampToValueAtTime(0.0001, when + dur);
@@ -188,6 +258,12 @@ function playBuffer(ctx, buffer, when, gainPeak, dest, durationCap) {
   g.connect(dest);
   src.start(when);
   src.stop(when + dur + 0.03);
+}
+
+function instrumentPlayStyle(id) {
+  if (id === "distortion") return { strum: 0.036, gain: 0.52, duration: 2.35, attack: 0.01, fade: 0.55 };
+  if (id === "piano") return { strum: 0.01, gain: 0.42, duration: 2.4, attack: 0.008, fade: 0.4 };
+  return { strum: 0.048, gain: 0.55, duration: 2.2, attack: 0.015, fade: 0.45 };
 }
 
 function synthFallback(ctx, freq, when, duration, gainPeak, dest, instrument) {
@@ -205,18 +281,12 @@ function synthFallback(ctx, freq, when, duration, gainPeak, dest, instrument) {
   osc.frequency.value = freq;
   const filter = ctx.createBiquadFilter();
   filter.type = "lowpass";
-  filter.frequency.value = instrument === "distortion" ? 2400 : 3500;
+  filter.frequency.value = instrument === "distortion" ? 2800 : 3500;
   osc.connect(filter);
   filter.connect(master);
   master.connect(dest);
   osc.start(when);
   osc.stop(when + duration);
-}
-
-function instrumentPlayStyle(id) {
-  if (id === "distortion") return { strum: 0.03, gain: 0.48, duration: 2.0 };
-  if (id === "piano") return { strum: 0.01, gain: 0.42, duration: 2.4 };
-  return { strum: 0.048, gain: 0.55, duration: 2.2 };
 }
 
 function playVoicing(frets, opts = {}) {
@@ -231,7 +301,7 @@ function playVoicing(frets, opts = {}) {
   const strum = opts.strumMs ?? style.strum;
   const baseGain = opts.gain ?? style.gain;
   const duration = opts.duration ?? style.duration;
-  const dest = getMasterBus(ctx);
+  const dest = destinationFor(instrument, ctx);
 
   const jobs = notes.map((n) => loadSample(instrument, n.midi));
 
@@ -240,9 +310,9 @@ function playVoicing(frets, opts = {}) {
     const start = ctx.currentTime + 0.04;
     notes.forEach((n, i) => {
       const when = start + i * strum;
-      const g = baseGain * (instrument === "piano" ? 1 : n.string <= 2 ? 1.08 : 0.88);
+      const g = baseGain * (instrument === "piano" ? 1 : n.string <= 2 ? 1.1 : 0.86);
       const buf = buffers[i];
-      if (buf) playBuffer(ctx, buf, when, g, dest, duration);
+      if (buf) playBuffer(ctx, buf, when, g, dest, duration, style);
       else synthFallback(ctx, n.freq, when, duration * 0.8, g * 0.5, dest, instrument);
     });
   });
@@ -289,7 +359,7 @@ function playMidiNotes(midis) {
   if (!ctx || !midis?.length) return false;
   const instrument = currentInstrument;
   const style = instrumentPlayStyle(instrument);
-  const dest = getMasterBus(ctx);
+  const dest = destinationFor(instrument, ctx);
   const jobs = midis.map((m) => loadSample(instrument, m));
   Promise.all(jobs).then((buffers) => {
     if (ctx.state === "suspended") ctx.resume().catch(() => {});
@@ -298,7 +368,7 @@ function playMidiNotes(midis) {
       const when = start + i * (instrument === "piano" ? 0.012 : 0.03);
       const buf = buffers[i];
       const g = style.gain * 0.95;
-      if (buf) playBuffer(ctx, buf, when, g, dest, style.duration);
+      if (buf) playBuffer(ctx, buf, when, g, dest, style.duration, style);
       else synthFallback(ctx, midiToFreq(m), when, style.duration * 0.8, g * 0.5, dest, instrument);
     });
   });
