@@ -90,63 +90,66 @@ body {
 
 .instrument-bar {
   display: inline-flex;
-  gap: 0.55rem;
+  gap: 0.65rem;
   margin-top: 1.15rem;
-  padding: 0.35rem;
-  border-radius: 999px;
+  padding: 0.45rem;
+  border-radius: 22px;
   border: 1px solid var(--wood-line);
-  background: rgba(18, 14, 11, 0.45);
+  background: rgba(18, 14, 11, 0.55);
 }
 
 .instrument-btn {
   appearance: none;
-  width: 2.7rem;
-  height: 2.7rem;
-  border-radius: 999px;
-  border: 1px solid transparent;
-  background: transparent;
+  width: 3.6rem;
+  height: 3.6rem;
+  border-radius: 16px;
+  border: 1px solid rgba(212, 160, 90, 0.2);
+  background: rgba(26, 20, 16, 0.85);
   color: var(--ink-soft);
   display: grid;
   place-items: center;
   cursor: pointer;
+  padding: 0;
+  overflow: hidden;
   transition:
     background 0.2s ease,
     border-color 0.2s ease,
-    color 0.2s ease,
-    transform 0.2s var(--ease);
+    transform 0.2s var(--ease),
+    box-shadow 0.2s ease;
 }
 
 .instrument-btn img {
-  width: 1.45rem;
-  height: 1.45rem;
+  width: 100%;
+  height: 100%;
   display: block;
-  filter: brightness(0) saturate(100%) invert(78%) sepia(18%) saturate(650%) hue-rotate(358deg) brightness(95%);
-  opacity: 0.72;
-  transition: opacity 0.2s ease, filter 0.2s ease;
+  object-fit: cover;
+  opacity: 0.88;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .instrument-btn:hover,
 .instrument-btn:focus-visible {
   outline: none;
-  border-color: rgba(212, 160, 90, 0.35);
-  background: rgba(212, 160, 90, 0.08);
-  transform: translateY(-1px);
+  border-color: rgba(212, 160, 90, 0.55);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
 }
 
 .instrument-btn:hover img,
-.instrument-btn:focus-visible img {
+.instrument-btn:focus-visible img,
+.instrument-btn.is-active img {
   opacity: 1;
 }
 
 .instrument-btn.is-active {
-  background: rgba(212, 160, 90, 0.18);
-  border-color: rgba(212, 160, 90, 0.55);
+  border-color: rgba(232, 184, 106, 0.85);
   box-shadow: 0 0 0 3px var(--glow);
+  transform: translateY(-1px);
 }
 
-.instrument-btn.is-active img {
-  opacity: 1;
-  filter: brightness(0) saturate(100%) invert(84%) sepia(28%) saturate(700%) hue-rotate(356deg) brightness(102%);
+.instrument-btn.is-playing {
+  border-color: var(--amber);
+  box-shadow: 0 0 0 3px rgba(212, 160, 90, 0.28);
 }
 
 .stage {
